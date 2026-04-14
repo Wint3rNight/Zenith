@@ -1,0 +1,18 @@
+build/
+build-*/
+.cache/
+
+# CMake-generated developer files
+CMakeUserPresets.json
+compile_commands.json
+
+# Editor and IDE files
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+.DS_Store
+
+# Local docs draft (temporarily ignored)
+docs/DOCUMENTATION.md

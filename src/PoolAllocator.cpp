@@ -15,6 +15,18 @@ PoolAllocator::PoolAllocator(std::size_t chunkSize, std::size_t chunkCount)
   BuildFreeList();
 }
 
+// Creates a pool on top of caller-provided backing memory.
+PoolAllocator::PoolAllocator(std::size_t chunkSize, std::size_t chunkCount,
+                             void *preallocated)
+    : Allocator(chunkSize * chunkCount, preallocated), m_chunkSize(chunkSize),
+      m_chunkCount(chunkCount), m_freeList(nullptr) {
+  assert(chunkSize >= sizeof(FreeNode) &&
+         "Chunk size must be >= sizeof(void*) to hold the free list pointer");
+  assert(chunkSize % alignof(std::max_align_t) == 0 &&
+         "Chunk size should be a multiple of the default alignment");
+  BuildFreeList();
+}
+
 // Drops the free-list head before destruction.
 PoolAllocator::~PoolAllocator() { m_freeList = nullptr; }
 

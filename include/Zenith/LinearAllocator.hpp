@@ -8,6 +8,8 @@ class LinearAllocator : public Allocator {
 public:
   // Creates a linear allocator with a fixed backing buffer.
   explicit LinearAllocator(std::size_t totalSize);
+  // Creates a linear allocator using caller-owned backing memory.
+  LinearAllocator(std::size_t totalSize, void *preallocated);
   // Destroys the allocator and its owned backing memory.
   ~LinearAllocator() override;
   // Reserves the next aligned block from the linear buffer.

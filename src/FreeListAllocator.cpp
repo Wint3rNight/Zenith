@@ -12,6 +12,13 @@ FreeListAllocator::FreeListAllocator(std::size_t totalSize,
   Reset();
 }
 
+// Creates a free-list allocator on top of caller-provided backing memory.
+FreeListAllocator::FreeListAllocator(std::size_t totalSize, void *preallocated,
+                                     PlacementPolicy policy)
+    : Allocator(totalSize, preallocated), m_policy(policy), m_freeList(nullptr) {
+  Reset();
+}
+
 // Clears the free-list head before destruction.
 FreeListAllocator::~FreeListAllocator() { m_freeList = nullptr; }
 

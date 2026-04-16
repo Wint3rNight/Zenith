@@ -3,6 +3,7 @@
 // IWYU pragma: begin_exports
 
 #include "Allocator.hpp"
+#include "AllocationUtils.hpp"
 #include "Common.hpp"
 #include "MemoryStats.hpp"
 

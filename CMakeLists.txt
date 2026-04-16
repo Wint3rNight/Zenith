@@ -18,6 +18,7 @@ endif()
 
 option(ZENITH_BUILD_EXAMPLES  "Build demo and benchmark executables" ${ZENITH_IS_TOP_LEVEL})
 option(ZENITH_INSTALL         "Generate install targets"             ${ZENITH_IS_TOP_LEVEL})
+option(ZENITH_BUILD_TESTS     "Build allocator tests"                ${ZENITH_IS_TOP_LEVEL})
 
 # ── C++ Standard ─────────────────────────────────────────────────────
 set(CMAKE_CXX_STANDARD 17)
@@ -74,6 +75,16 @@ if(ZENITH_BUILD_EXAMPLES)
 
     add_executable(ZenithBenchmark benchmark/main.cpp)
     target_link_libraries(ZenithBenchmark PRIVATE ZenithMemory)
+endif()
+
+# ── Tests ───────────────────────────────────────────────────────────
+if(ZENITH_BUILD_TESTS)
+    enable_testing()
+
+    add_executable(ZenithTests tests/main.cpp)
+    target_link_libraries(ZenithTests PRIVATE ZenithMemory)
+
+    add_test(NAME ZenithTests COMMAND ZenithTests)
 endif()
 
 # ── Install Targets ──────────────────────────────────────────────────

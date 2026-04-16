@@ -8,6 +8,10 @@ namespace Zenith {
 StackAllocator::StackAllocator(std::size_t totalSize)
     : Allocator(totalSize), m_offset(0) {}
 
+// Initializes the allocator on top of caller-provided backing memory.
+StackAllocator::StackAllocator(std::size_t totalSize, void *preallocated)
+    : Allocator(totalSize, preallocated), m_offset(0) {}
+
 // Clears the tracked stack offset before destruction.
 StackAllocator::~StackAllocator() { m_offset = 0; }
 

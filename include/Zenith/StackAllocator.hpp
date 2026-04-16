@@ -17,6 +17,8 @@ public:
 
   // Creates a LIFO allocator with a fixed backing buffer.
   explicit StackAllocator(std::size_t totalSize);
+  // Creates a LIFO allocator using caller-owned backing memory.
+  StackAllocator(std::size_t totalSize, void *preallocated);
   // Destroys the allocator and its owned backing memory.
   ~StackAllocator() override;
 

@@ -101,39 +101,42 @@ cmake .. -DCMAKE_PREFIX_PATH=/path/to/prefix
 // Or include only what you need:
 // #include <Zenith/LinearAllocator.hpp>
 
-int main() {
-    // 1. Linear Allocator — per-frame scratch memory
-    Zenith::LinearAllocator frameAlloc(1024 * 1024); // 1 MB
+#include <array>
 
-    void* temp = frameAlloc.Allocate(256, 16);
+int main() {
+    // 1. Linear allocator on caller-owned backing memory
+    std::array<std::byte, 4096> frameMemory{};
+    Zenith::LinearAllocator frameAlloc(frameMemory.size(), frameMemory.data());
+
+    float* temp = Zenith::AllocateType<float>(frameAlloc, 64);
     // ... use temp ...
     frameAlloc.Reset(); // free everything at once
 
 
-    // 2. Pool Allocator — fixed-size objects
+    // 2. Pool allocator with typed construction helpers
     struct Particle { float x, y, z, life; }; // 16 bytes
     Zenith::PoolAllocator pool(16, 1000);      // 1000 particles
 
-    void* p1 = pool.Allocate(sizeof(Particle));
-    void* p2 = pool.Allocate(sizeof(Particle));
-    pool.Free(p1); // O(1) — any order
-    pool.Free(p2);
+    Particle* p1 = Zenith::Construct<Particle>(pool, Particle{0, 0, 0, 1});
+    Particle* p2 = Zenith::Construct<Particle>(pool, Particle{1, 0, 0, 1});
+    Zenith::Destroy(pool, p1); // O(1) — any order
+    Zenith::Destroy(pool, p2);
 
 
     // 3. Stack Allocator — scoped LIFO allocations
     Zenith::StackAllocator stack(4096);
 
-    void* a = stack.Allocate(64);
-    void* b = stack.Allocate(128);
+    auto* a = Zenith::AllocateType<std::uint64_t>(stack, 8);
+    auto* b = Zenith::AllocateType<std::uint8_t>(stack, 128);
     stack.Free(b); // must free in reverse order
     stack.Free(a);
 
 
-    // 4. Free List Allocator — general purpose
+    // 4. Free-list allocator — general purpose
     Zenith::FreeListAllocator general(1024 * 1024);
 
-    void* mesh = general.Allocate(4096, 16);
-    void* tex  = general.Allocate(2048, 16);
+    auto* mesh = Zenith::AllocateType<std::byte>(general, 4096);
+    auto* tex  = Zenith::AllocateType<std::byte>(general, 2048);
     general.Free(mesh); // any order, with coalescing
     general.Free(tex);
 
@@ -145,6 +148,13 @@ int main() {
 }
 ```
 
+### Reusable Library Conveniences
+
+- Every allocator can now be constructed on top of caller-owned backing memory.
+- `Zenith::AllocateType<T>()` gives you typed storage without manual `sizeof` or `alignof`.
+- `Zenith::Construct<T>()` and `Zenith::Destroy()` help when you want placement-new style object lifetimes on top of an allocator.
+- A standalone `find_package()` consumer example lives in `examples/find_package_consumer/`.
+
 ## Building the Library Standalone
 
 ```bash
@@ -155,6 +165,7 @@ make -j$(nproc)
 
 ./ZenithDemo        # run the demo
 ./ZenithBenchmark   # run performance benchmarks
+ctest --output-on-failure
 ```
 
 ### CMake Options
@@ -163,6 +174,7 @@ make -j$(nproc)
 |--------|---------|-------------|
 | `ZENITH_BUILD_EXAMPLES` | `ON` (standalone) / `OFF` (subdirectory) | Build demo and benchmark |
 | `ZENITH_INSTALL` | `ON` (standalone) / `OFF` (subdirectory) | Generate install targets |
+| `ZENITH_BUILD_TESTS` | `ON` (standalone) / `OFF` (subdirectory) | Build the CTest-based allocator suite |
 
 ## Project Structure
 
@@ -174,9 +186,10 @@ ZenithMemory/
 ├── include/Zenith/
 │   ├── Zenith.hpp              ← convenience header (includes everything)
 │   ├── Common.hpp              ← alignment math, pointer arithmetic
+│   ├── AllocationUtils.hpp     ← typed allocation and construction helpers
 │   ├── Allocator.hpp           ← abstract base class
 │   ├── MemoryStats.hpp         ← allocation statistics
-│   ├── DebugGuard.hpp          ← memory corruption detection
+│   ├── DebugGuard.hpp          ← future debug-memory helpers
 │   ├── LinearAllocator.hpp
 │   ├── StackAllocator.hpp
 │   ├── PoolAllocator.hpp
@@ -188,6 +201,12 @@ ZenithMemory/
 │   └── FreeListAllocator.cpp
 ├── demo/
 │   └── main.cpp
+├── tests/
+│   └── main.cpp
+├── examples/
+│   └── find_package_consumer/
+│       ├── CMakeLists.txt
+│       └── main.cpp
 └── benchmark/
     └── main.cpp
 ```

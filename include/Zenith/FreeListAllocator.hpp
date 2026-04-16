@@ -24,6 +24,9 @@ public:
   explicit FreeListAllocator(
       std::size_t totalSize,
       PlacementPolicy policy = PlacementPolicy::FirstFit);
+  // Creates a free-list allocator using caller-owned backing memory.
+  FreeListAllocator(std::size_t totalSize, void *preallocated,
+                    PlacementPolicy policy = PlacementPolicy::FirstFit);
   // Destroys the allocator and its owned backing memory.
   ~FreeListAllocator() override;
 

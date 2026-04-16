@@ -12,6 +12,9 @@ public:
 
   // Creates a fixed-size chunk pool with the requested capacity.
   PoolAllocator(std::size_t chunkSize, std::size_t chunkCount);
+  // Creates a fixed-size chunk pool using caller-owned backing memory.
+  PoolAllocator(std::size_t chunkSize, std::size_t chunkCount,
+                void *preallocated);
   // Destroys the allocator and its owned backing memory.
   ~PoolAllocator() override;
 

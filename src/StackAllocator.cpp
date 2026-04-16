@@ -16,6 +16,10 @@ void *StackAllocator::Allocate(std::size_t size, std::size_t alignment) {
   assert(size > 0 && "Cannot allocate 0 bytes");
   assert(IsPowerOfTwo(alignment) && "Alignment must be a power of 2");
 
+  if (size == 0 || !IsPowerOfTwo(alignment)) {
+    return nullptr;
+  }
+
   uptr currentAddress = ToUptr(m_start) + m_offset;
   std::size_t padding =
       CalculatePaddingWithHeader<AllocationHeader>(currentAddress, alignment);
@@ -26,7 +30,12 @@ void *StackAllocator::Allocate(std::size_t size, std::size_t alignment) {
   uptr alignedAddress = currentAddress + padding;
   AllocationHeader *header = reinterpret_cast<AllocationHeader *>(
       alignedAddress - sizeof(AllocationHeader));
-  header->padding = static_cast<u8>(padding);
+  header->padding = padding;
+  header->previousOffset = m_offset;
+
+#ifndef NDEBUG
+  header->previousAllocation = m_prevAllocation;
+#endif
 
   m_offset += padding + size;
 
@@ -55,16 +64,15 @@ void StackAllocator::Free(void *ptr) {
   AllocationHeader *header = reinterpret_cast<AllocationHeader *>(
       ToUptr(ptr) - sizeof(AllocationHeader));
 
-  std::size_t padding = header->padding;
-  std::size_t ptrOffset = PtrDiff(ptr, m_start);
-  std::size_t allocSize = m_offset - ptrOffset;
+  std::size_t previousOffset = header->previousOffset;
+  std::size_t releasedBytes = m_offset - previousOffset;
 
-  m_offset = ptrOffset - padding;
+  m_offset = previousOffset;
 
-  m_stats.RecordDeallocation(padding + allocSize);
+  m_stats.RecordDeallocation(releasedBytes);
 
 #ifndef NDEBUG
-  m_prevAllocation = nullptr;
+  m_prevAllocation = header->previousAllocation;
 #endif
 }
 

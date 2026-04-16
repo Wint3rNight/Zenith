@@ -13,7 +13,7 @@ public:
 
   struct AllocationHeader {
     std::size_t blockSize;
-    u8 padding;
+    std::size_t padding;
   };
 
   enum class PlacementPolicy {

@@ -20,6 +20,10 @@ void *FreeListAllocator::Allocate(std::size_t size, std::size_t alignment) {
   assert(size > 0 && "Cannot allocate 0 bytes");
   assert(IsPowerOfTwo(alignment) && "Alignment must be a power of 2");
 
+  if (size == 0 || !IsPowerOfTwo(alignment)) {
+    return nullptr;
+  }
+
   std::size_t allocSize = size;
   if (allocSize < sizeof(FreeBlock)) {
     allocSize = sizeof(FreeBlock);
@@ -62,7 +66,7 @@ void *FreeListAllocator::Allocate(std::size_t size, std::size_t alignment) {
   AllocationHeader *header = reinterpret_cast<AllocationHeader *>(
       userAddress - sizeof(AllocationHeader));
   header->blockSize = requiredSpace;
-  header->padding = static_cast<u8>(padding);
+  header->padding = padding;
 
   m_stats.RecordAllocation(requiredSpace);
 
@@ -74,12 +78,28 @@ void FreeListAllocator::Free(void *ptr) {
   if (ptr == nullptr)
     return;
 
+#ifndef NDEBUG
+  {
+    uptr userAddress = ToUptr(ptr);
+    uptr start = ToUptr(m_start);
+    uptr end = start + m_totalSize;
+
+    assert(userAddress >= start && userAddress < end &&
+           "Pointer does not belong to this free-list allocator");
+  }
+#endif
+
   uptr userAddress = ToUptr(ptr);
   AllocationHeader *header = reinterpret_cast<AllocationHeader *>(
       userAddress - sizeof(AllocationHeader));
 
   std::size_t blockSize = header->blockSize;
   std::size_t padding = header->padding;
+
+#ifndef NDEBUG
+  assert(blockSize > 0 && blockSize <= m_totalSize &&
+         "Allocation header is corrupted or pointer is invalid");
+#endif
 
   uptr blockStart = userAddress - padding;
   FreeBlock *freeBlock = reinterpret_cast<FreeBlock *>(blockStart);

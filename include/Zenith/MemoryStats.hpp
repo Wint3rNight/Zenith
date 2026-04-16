@@ -38,8 +38,13 @@ struct MemoryStats {
     totalAllocated = 0;
   }
 
-  // Reports whether alloc/free counts are mismatched.
-  bool HasLeaks() const { return allocationCount != deallocationCount; }
+  // Reports whether this allocator still has live bytes reserved.
+  // This is more accurate than comparing alloc/free counts for reset-based
+  // allocators such as linear arenas.
+  bool HasOutstandingMemory() const { return usedBytes != 0; }
+
+  // Backward-compatible alias retained for existing callers.
+  bool HasLeaks() const { return HasOutstandingMemory(); }
 
   // Prints a formatted summary of the tracked memory statistics.
   void Print(const char *allocatorName) const {
@@ -59,8 +64,8 @@ struct MemoryStats {
               << "        ║\n";
     std::cout << "║ Total Allocated:  " << std::setw(12) << totalAllocated
               << " bytes ║\n";
-    std::cout << "║ Leaked:           " << std::setw(12)
-              << (HasLeaks() ? "YES" : "NO") << "        ║\n";
+    std::cout << "║ Outstanding:      " << std::setw(12)
+              << (HasOutstandingMemory() ? "YES" : "NO") << "        ║\n";
     std::cout << "╚══════════════════════════════════════════╝\n";
   }
 };

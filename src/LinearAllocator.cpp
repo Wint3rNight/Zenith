@@ -16,6 +16,10 @@ void *LinearAllocator::Allocate(std::size_t size, std::size_t alignment) {
   assert(size > 0 && "Cannot allocate 0 bytes");
   assert(IsPowerOfTwo(alignment) && "Alignment must be a power of 2");
 
+  if (size == 0 || !IsPowerOfTwo(alignment)) {
+    return nullptr;
+  }
+
   uptr currentAddress = ToUptr(m_start) + m_offset;
   std::size_t padding = CalculatePadding(currentAddress, alignment);
   if (m_offset + padding + size > m_totalSize) {

@@ -40,6 +40,14 @@ void PoolAllocator::BuildFreeList() {
 void *PoolAllocator::Allocate([[maybe_unused]] std::size_t size,
                               [[maybe_unused]] std::size_t alignment) {
   assert(size <= m_chunkSize && "Requested allocation exceeds pool chunk size");
+  assert(IsPowerOfTwo(alignment) && "Alignment must be a power of 2");
+  assert(alignment <= alignof(std::max_align_t) &&
+         "Pool allocator only guarantees alignment up to std::max_align_t");
+
+  if (size > m_chunkSize || !IsPowerOfTwo(alignment) ||
+      alignment > alignof(std::max_align_t)) {
+    return nullptr;
+  }
 
   if (m_freeList == nullptr) {
     return nullptr;

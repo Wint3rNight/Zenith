@@ -7,7 +7,12 @@ namespace Zenith {
 class StackAllocator : public Allocator {
 public:
   struct AllocationHeader {
-    u8 padding;
+    std::size_t padding;
+    std::size_t previousOffset;
+
+#ifndef NDEBUG
+    void *previousAllocation;
+#endif
   };
 
   // Creates a LIFO allocator with a fixed backing buffer.

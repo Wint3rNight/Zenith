@@ -1,0 +1,35 @@
+
+Zenith EngineSim
+Scenario: burst | Frames: 600 | Seed: 1337 | Report every: 120
+--------------------------------------------------------------------------------
+Frame  Mode  Particles  Blobs  LinearKiB  StackPeakKiB  PoolUsed  FreeListKiB  LargestFreeKiB  Frag%  Fail
+--------------------------------------------------------------------------------
+    1    B      25000    144      986.5          25.1    25000       155.0          8037.0    0.0    0
+  120    S      20000   1189      815.6          25.1    20000      1278.8          6798.0    1.7    0
+  240    S      20000   1210      815.6          25.1    20000      1284.7          6623.9    4.1    0
+  360    S      20000   1198      815.6          25.1    20000      1234.3          6662.3    4.2    0
+  480    S      20000   1214      815.6          25.1    20000      1295.9          6711.0    2.7    0
+  600    S      20000   1232      815.6          25.1    20000      1289.6          6650.1    3.7    0
+--------------------------------------------------------------------------------
+Summary
+  Frames run: 600
+  Peak particles alive: 25000
+  Peak resource blobs alive: 1342
+  Max linear peak: 986.5 KiB
+  Max stack peak: 25.1 KiB
+  Max free-list peak: 1438.1 KiB
+  Max free-list fragmentation: 4.2%
+  Total allocation failures: 0
+  Burst vs steady comparison
+    Steady frames: 595
+    Burst frames: 5
+    Avg steady linear peak: 815.6 KiB
+    Avg steady pool used: 20000.0 chunks
+    Avg steady free-list used: 1267.2 KiB
+    Avg steady fragmentation: 2.1%
+    Steady allocation failures: 0
+    Avg burst linear peak: 986.5 KiB
+    Avg burst pool used: 25000.0 chunks
+    Avg burst free-list used: 1159.6 KiB
+    Avg burst fragmentation: 1.3%
+    Burst allocation failures: 0

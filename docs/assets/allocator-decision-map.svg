@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860" role="img" aria-labelledby="title desc">
+  <title id="title">Allocator Decision Map</title>
+  <desc id="desc">Decision tree for selecting Linear, Stack, Pool, or FreeList allocator by workload pattern.</desc>
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #1f2937; }
+      .q { font: 700 16px sans-serif; fill: #0f172a; }
+      .a { font: 600 16px sans-serif; fill: #111827; }
+      .small { font: 500 13px sans-serif; fill: #374151; }
+      .boxQ { fill: #fff7ed; stroke: #c2410c; stroke-width: 2.5; rx: 10; ry: 10; }
+      .boxA { fill: #ecfeff; stroke: #0e7490; stroke-width: 2.5; rx: 10; ry: 10; }
+      .boxFinal { fill: #dcfce7; stroke: #15803d; stroke-width: 3; rx: 12; ry: 12; }
+      .line { stroke: #475569; stroke-width: 2.5; fill: none; marker-end: url(#arrowHead); }
+      .yn { font: 600 13px sans-serif; fill: #475569; }
+    </style>
+    <marker id="arrowHead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 z" fill="#475569" />
+    </marker>
+  </defs>
+
+  <text x="600" y="45" text-anchor="middle" class="title">How to Choose an Allocator in ZenithMemory</text>
+
+  <rect x="390" y="80" width="420" height="80" class="boxQ" />
+  <text x="600" y="113" text-anchor="middle" class="q">Q1: Is allocation short-lived and reset as one batch?</text>
+  <text x="600" y="138" text-anchor="middle" class="small">example: frame scratch arrays, temporary command buffers</text>
+
+  <rect x="90" y="240" width="300" height="90" class="boxFinal" />
+  <text x="240" y="276" text-anchor="middle" class="a">Use LinearAllocator</text>
+  <text x="240" y="301" text-anchor="middle" class="small">Allocate fast, reset once</text>
+
+  <rect x="510" y="240" width="360" height="90" class="boxQ" />
+  <text x="690" y="276" text-anchor="middle" class="q">Q2: Can free order be strict LIFO?</text>
+  <text x="690" y="301" text-anchor="middle" class="small">example: nested temporary scopes</text>
+
+  <rect x="90" y="410" width="300" height="90" class="boxFinal" />
+  <text x="240" y="446" text-anchor="middle" class="a">Use StackAllocator</text>
+  <text x="240" y="471" text-anchor="middle" class="small">Push/pop with reverse free order</text>
+
+  <rect x="510" y="410" width="360" height="90" class="boxQ" />
+  <text x="690" y="446" text-anchor="middle" class="q">Q3: Are objects mostly same size?</text>
+  <text x="690" y="471" text-anchor="middle" class="small">example: particles, ECS components</text>
+
+  <rect x="90" y="580" width="300" height="90" class="boxFinal" />
+  <text x="240" y="616" text-anchor="middle" class="a">Use PoolAllocator</text>
+  <text x="240" y="641" text-anchor="middle" class="small">O(1) slot reuse for fixed-size churn</text>
+
+  <rect x="510" y="580" width="360" height="90" class="boxFinal" />
+  <text x="690" y="616" text-anchor="middle" class="a">Use FreeListAllocator</text>
+  <text x="690" y="641" text-anchor="middle" class="small">Mixed sizes and mixed lifetimes</text>
+
+  <line x1="430" y1="160" x2="260" y2="240" class="line" />
+  <line x1="770" y1="160" x2="690" y2="240" class="line" />
+  <text x="330" y="205" class="yn">yes</text>
+  <text x="760" y="205" class="yn">no</text>
+
+  <line x1="560" y1="330" x2="260" y2="410" class="line" />
+  <line x1="760" y1="330" x2="690" y2="410" class="line" />
+  <text x="410" y="380" class="yn">yes</text>
+  <text x="765" y="380" class="yn">no</text>
+
+  <line x1="560" y1="500" x2="260" y2="580" class="line" />
+  <line x1="760" y1="500" x2="690" y2="580" class="line" />
+  <text x="410" y="550" class="yn">yes</text>
+  <text x="765" y="550" class="yn">no</text>
+
+  <rect x="920" y="250" width="220" height="250" class="boxA" />
+  <text x="1030" y="285" text-anchor="middle" class="a">Notes</text>
+  <text x="935" y="315" class="small">- No universal winner</text>
+  <text x="935" y="340" class="small">- Match allocator to pattern</text>
+  <text x="935" y="365" class="small">- Validate with tests + evidence</text>
+  <text x="935" y="390" class="small">- Separate microbenchmark claims</text>
+  <text x="935" y="415" class="small">  from workload simulation claims</text>
+  <text x="935" y="440" class="small">- Track fragmentation in free-list</text>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">EngineSim workload comparison</title>
+  <desc id="desc">Burst vs steady and fragmentation vs recovery summary charts from EngineSim outputs.</desc>
+  <style>
+    .bg { fill: #0b1020; }
+    .panel { fill: #111827; stroke: #334155; stroke-width: 2; rx: 12; }
+    .title { fill: #f8fafc; font: 700 24px 'DejaVu Sans', sans-serif; }
+    .sub { fill: #94a3b8; font: 500 14px 'DejaVu Sans', sans-serif; }
+    .axis { stroke: #64748b; stroke-width: 1.4; }
+    .grid { stroke: #1e293b; stroke-width: 1; }
+    .label { fill: #e2e8f0; font: 600 13px 'DejaVu Sans', sans-serif; }
+    .steady { fill: #38bdf8; }
+    .burst { fill: #f97316; }
+    .frag { fill: #ef4444; }
+    .recover { fill: #22c55e; }
+    .lineA { stroke: #ef4444; stroke-width: 3; fill: none; }
+    .lineB { stroke: #22c55e; stroke-width: 3; fill: none; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1200" height="760" />
+
+  <rect class="panel" x="32" y="32" width="1136" height="320" />
+  <text class="title" x="56" y="70">Burst vs Steady (EngineSim burst scenario)</text>
+  <text class="sub" x="56" y="96">Source: docs/results/enginesim_burst.txt (frames=600, seed=1337)</text>
+
+  <line class="axis" x1="90" y1="320" x2="1100" y2="320" />
+  <line class="axis" x1="90" y1="140" x2="90" y2="320" />
+  <line class="grid" x1="90" y1="275" x2="1100" y2="275" />
+  <line class="grid" x1="90" y1="230" x2="1100" y2="230" />
+  <line class="grid" x1="90" y1="185" x2="1100" y2="185" />
+
+  <text class="label" x="120" y="335">Linear peak KiB</text>
+  <rect class="steady" x="120" y="171" width="90" height="149" />
+  <rect class="burst" x="230" y="140" width="90" height="180" />
+  <text class="label" x="130" y="165">815.6</text>
+  <text class="label" x="240" y="134">986.5</text>
+
+  <text class="label" x="390" y="335">Pool used chunks</text>
+  <rect class="steady" x="390" y="176" width="90" height="144" />
+  <rect class="burst" x="500" y="140" width="90" height="180" />
+  <text class="label" x="400" y="170">20000</text>
+  <text class="label" x="510" y="134">25000</text>
+
+  <text class="label" x="660" y="335">Free-list used KiB</text>
+  <rect class="steady" x="660" y="157" width="90" height="163" />
+  <rect class="burst" x="770" y="171" width="90" height="149" />
+  <text class="label" x="668" y="151">1267.2</text>
+  <text class="label" x="780" y="165">1159.6</text>
+
+  <text class="label" x="930" y="335">Fragmentation %</text>
+  <rect class="steady" x="930" y="282" width="90" height="38" />
+  <rect class="burst" x="1040" y="297" width="90" height="23" />
+  <text class="label" x="939" y="276">2.1%</text>
+  <text class="label" x="1048" y="291">1.3%</text>
+
+  <rect class="steady" x="56" y="112" width="16" height="16" />
+  <text class="label" x="78" y="125">Steady-frame average (595 frames)</text>
+  <rect class="burst" x="350" y="112" width="16" height="16" />
+  <text class="label" x="372" y="125">Burst-frame average (5 frames)</text>
+
+  <rect class="panel" x="32" y="386" width="1136" height="340" />
+  <text class="title" x="56" y="424">Fragmentation vs Recovery Narrative</text>
+  <text class="sub" x="56" y="450">Fragmentation scenario plateaus near 10-14% while recovery intentionally spikes mid-run then coalesces to 0%</text>
+
+  <line class="axis" x1="90" y1="680" x2="1100" y2="680" />
+  <line class="axis" x1="90" y1="500" x2="90" y2="680" />
+  <line class="grid" x1="90" y1="635" x2="1100" y2="635" />
+  <line class="grid" x1="90" y1="590" x2="1100" y2="590" />
+  <line class="grid" x1="90" y1="545" x2="1100" y2="545" />
+
+  <polyline class="lineA" points="90,680 250,645 410,630 570,640 730,635 890,630 1100,624" />
+  <polyline class="lineB" points="90,680 250,645 410,630 570,560 730,525 890,680 1100,680" />
+
+  <text class="label" x="96" y="695">Frame 1</text>
+  <text class="label" x="410" y="695">Frame 240</text>
+  <text class="label" x="730" y="695">Frame 480</text>
+  <text class="label" x="1050" y="695">Frame 600</text>
+
+  <rect class="frag" x="56" y="470" width="16" height="16" />
+  <text class="label" x="78" y="483">Fragmentation scenario (max 14.0%)</text>
+  <rect class="recover" x="350" y="470" width="16" height="16" />
+  <text class="label" x="372" y="483">Recovery scenario (spike to 52.5%, then 0.0% at frame 600)</text>
+</svg>

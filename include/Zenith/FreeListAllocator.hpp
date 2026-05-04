@@ -38,6 +38,15 @@ public:
   // Restores the allocator to one large free block.
   void Reset() override;
 
+  // Returns the number of free blocks currently tracked by the allocator.
+  std::size_t GetFreeBlockCount() const;
+  // Returns the size of the largest currently available free block.
+  std::size_t GetLargestFreeBlockSize() const;
+  // Returns the total bytes currently available across the free list.
+  std::size_t GetTotalFreeBytes() const;
+  // Returns the external fragmentation ratio in the range [0.0, 1.0].
+  double GetExternalFragmentationRatio() const;
+
 private:
   // Dispatches to the active placement-policy search routine.
   void Find(std::size_t size, std::size_t alignment, std::size_t &outPadding,

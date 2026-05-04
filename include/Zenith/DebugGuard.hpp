@@ -48,9 +48,7 @@ inline void PoisonFreedMemory(void *userPtr, std::size_t userSize) {
 }
 
 // Returns the extra bytes needed to store both debug guards.
-constexpr std::size_t ExtraGuardBytes() {
-  return GUARD_SIZE * 2;
-}
+constexpr std::size_t ExtraGuardBytes() { return GUARD_SIZE * 2; }
 
 #else
 

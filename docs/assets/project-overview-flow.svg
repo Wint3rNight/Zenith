@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">ZenithMemory Project Overview Flow</title>
+  <desc id="desc">Library core feeds demo, benchmark, engine simulation, and tests. Outputs flow into docs data and results.</desc>
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #1f2937; }
+      .label { font: 600 17px sans-serif; fill: #111827; }
+      .small { font: 500 14px sans-serif; fill: #374151; }
+      .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; rx: 10; ry: 10; }
+      .boxMain { fill: #e0f2fe; stroke: #0369a1; stroke-width: 3; rx: 12; ry: 12; }
+      .arrow { stroke: #475569; stroke-width: 2.5; fill: none; marker-end: url(#arrowHead); }
+    </style>
+    <marker id="arrowHead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 z" fill="#475569" />
+    </marker>
+  </defs>
+
+  <text x="600" y="45" text-anchor="middle" class="title">ZenithMemory End-to-End Project Flow</text>
+
+  <rect x="430" y="80" width="340" height="90" class="boxMain" />
+  <text x="600" y="118" text-anchor="middle" class="label">ZenithMemory Library</text>
+  <text x="600" y="143" text-anchor="middle" class="small">include/Zenith + src allocators</text>
+
+  <rect x="80" y="250" width="230" height="90" class="box" />
+  <text x="195" y="287" text-anchor="middle" class="label">ZenithDemo</text>
+  <text x="195" y="312" text-anchor="middle" class="small">concept walkthrough</text>
+
+  <rect x="350" y="250" width="230" height="90" class="box" />
+  <text x="465" y="287" text-anchor="middle" class="label">ZenithBenchmark</text>
+  <text x="465" y="312" text-anchor="middle" class="small">microbench evidence</text>
+
+  <rect x="620" y="250" width="230" height="90" class="box" />
+  <text x="735" y="287" text-anchor="middle" class="label">ZenithEngineSim</text>
+  <text x="735" y="312" text-anchor="middle" class="small">frame workload evidence</text>
+
+  <rect x="890" y="250" width="230" height="90" class="box" />
+  <text x="1005" y="287" text-anchor="middle" class="label">ZenithTests</text>
+  <text x="1005" y="312" text-anchor="middle" class="small">correctness checks</text>
+
+  <line x1="520" y1="170" x2="195" y2="250" class="arrow" />
+  <line x1="560" y1="170" x2="465" y2="250" class="arrow" />
+  <line x1="640" y1="170" x2="735" y2="250" class="arrow" />
+  <line x1="680" y1="170" x2="1005" y2="250" class="arrow" />
+
+  <rect x="290" y="430" width="280" height="100" class="box" />
+  <text x="430" y="470" text-anchor="middle" class="label">docs/results</text>
+  <text x="430" y="495" text-anchor="middle" class="small">human-readable text logs</text>
+
+  <rect x="630" y="430" width="280" height="100" class="box" />
+  <text x="770" y="470" text-anchor="middle" class="label">docs/data</text>
+  <text x="770" y="495" text-anchor="middle" class="small">machine-readable CSV files</text>
+
+  <line x1="465" y1="340" x2="430" y2="430" class="arrow" />
+  <line x1="735" y1="340" x2="430" y2="430" class="arrow" />
+  <line x1="735" y1="340" x2="770" y2="430" class="arrow" />
+
+  <rect x="430" y="590" width="340" height="100" class="boxMain" />
+  <text x="600" y="630" text-anchor="middle" class="label">Project Documentation</text>
+  <text x="600" y="655" text-anchor="middle" class="small">README + docs/BENCHMARK_EVIDENCE + this guide</text>
+
+  <line x1="430" y1="530" x2="560" y2="590" class="arrow" />
+  <line x1="770" y1="530" x2="640" y2="590" class="arrow" />
+</svg>

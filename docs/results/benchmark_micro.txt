@@ -1,0 +1,126 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║           ZENITH MEMORY — Performance Benchmark            ║
+╠══════════════════════════════════════════════════════════════╣
+║  Iterations:   100000
+║  Alloc size:   64 bytes
+║  Alignment:    16 bytes
+╚══════════════════════════════════════════════════════════════╝
+
+  Warming up...
+
+  ┌────────── Single Alloc/Free ──────────────────────────────────────┐
+  │ Allocator                 │   Total Time   │   Per Op        │
+  ├───────────────────────────┼────────────────┼─────────────────┤
+  malloc / free             │     631.55 μs total │     6.32 ns/op
+  new / delete              │    1019.66 μs total │    10.20 ns/op
+  Linear Allocator          │     281.10 μs total │     2.81 ns/op
+  Stack Allocator           │     398.37 μs total │     3.98 ns/op
+  Pool Allocator            │     279.08 μs total │     2.79 ns/op
+  FreeList Allocator        │     780.00 μs total │     7.80 ns/op
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌────────── Bulk Alloc/Free (1000 objects) ──────────────────────────┐
+  │ Allocator                 │   Total Time   │   Per Op        │
+  ├───────────────────────────┼────────────────┼─────────────────┤
+  malloc (bulk)             │    1835.28 μs total │    18.35 ns/op
+  Pool (bulk)               │     331.58 μs total │     3.32 ns/op
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌────────── EngineSim-Patterned Microbenchmark ────────────────────────┐
+  │ These scenarios mimic allocation patterns from ZenithEngineSim,      │
+  │ but still run as isolated microbenchmarks.                   │
+  │ For full interleaved workload behavior, use ZenithEngineSim. │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Scenario Group: Frame Scratch (transient per-frame allocations)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Frame scratch (steady)         │ malloc             │      40.96 μs │    17.07 ns/op │     2400 │     0
+  Frame scratch (steady)         │ Linear             │       7.74 μs │     3.22 ns/op │     2400 │     0
+  Frame scratch (steady)         │ Stack              │       9.42 μs │     3.92 ns/op │     2400 │     0
+  Frame scratch (steady)         │ FreeList           │      19.28 μs │     8.03 ns/op │     2400 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    Linear             :   5.29x faster
+    Stack              :   4.35x faster
+    FreeList           :   2.12x faster
+
+  Scenario Group: Frame Scratch Burst (periodic spikes every 120 frames)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Frame scratch (burst)          │ malloc             │      62.51 μs │    26.04 ns/op │     2400 │     0
+  Frame scratch (burst)          │ Linear             │      10.84 μs │     4.52 ns/op │     2400 │     0
+  Frame scratch (burst)          │ Stack              │      17.49 μs │     7.29 ns/op │     2400 │     0
+  Frame scratch (burst)          │ FreeList           │      35.92 μs │    14.97 ns/op │     2400 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    Linear             :   5.77x faster
+    Stack              :   3.57x faster
+    FreeList           :   1.74x faster
+
+  Scenario Group: Particle Churn (fixed-size long-lived objects)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Particle churn (steady)        │ malloc             │   11604.83 μs │    58.39 ns/op │   198746 │     0
+  Particle churn (steady)        │ Pool               │    9481.53 μs │    47.71 ns/op │   198746 │     0
+  Particle churn (steady)        │ FreeList           │   36686.79 μs │   184.59 ns/op │   198746 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    Pool               :   1.22x faster
+    FreeList           :   0.32x slower
+
+  Scenario Group: Particle Churn Burst (spawn spikes every 120 frames)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Particle churn (burst)         │ malloc             │   13993.92 μs │    56.54 ns/op │   247492 │     0
+  Particle churn (burst)         │ Pool               │   11004.00 μs │    44.46 ns/op │   247492 │     0
+  Particle churn (burst)         │ FreeList           │   49179.32 μs │   198.71 ns/op │   247492 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    Pool               :   1.27x faster
+    FreeList           :   0.28x slower
+
+  Scenario Group: Resource Blob Churn (variable-size payloads)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Resource blobs (steady)        │ malloc             │     834.34 μs │    43.46 ns/op │    19200 │     0
+  Resource blobs (steady)        │ FreeList           │   12730.00 μs │   663.02 ns/op │    19200 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    FreeList           :   0.07x slower
+
+  Scenario Group: Resource Blob Burst (mixed-size burst payloads)
+  ┌────────────────────────────────┬────────────────────┬──────────────┬────────────┬──────────┬───────┐
+  │ Scenario                       │ Allocator          │ Total Time   │ Per Op     │ Ops      │ Fails │
+  ├────────────────────────────────┼────────────────────┼──────────────┼────────────┼──────────┼───────┤
+  Resource blobs (burst)         │ malloc             │     939.03 μs │    45.85 ns/op │    20480 │     0
+  Resource blobs (burst)         │ FreeList           │   13273.91 μs │   648.14 ns/op │    20480 │     0
+  └────────────────────────────────┴────────────────────┴──────────────┴────────────┴──────────┴───────┘
+  Speed vs malloc:
+    malloc             :   1.00x faster
+    FreeList           :   0.07x slower
+
+  ┌────────── Speed vs malloc ────────────────────────────────────────┐
+  │ malloc / free             │   1.00x faster
+  │ new / delete              │   0.62x slower
+  │ Linear Allocator          │   2.25x faster
+  │ Stack Allocator           │   1.59x faster
+  │ Pool Allocator            │   2.26x faster
+  │ FreeList Allocator        │   0.81x slower
+  └─────────────────────────────────────────────────────────────────┘
+
+  Note: Results vary by system, CPU frequency, and OS scheduler.
+  Microbenchmark numbers should not be interpreted as full engine performance.
+  Run ZenithEngineSim steady/burst/fragmentation/recovery for real workload evidence.
+

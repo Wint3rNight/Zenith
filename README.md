@@ -1,216 +1,171 @@
 # ZenithMemory
 
-A modern C++ memory allocator library designed for game engines and high-performance systems.
+ZenithMemory is a C++17 allocator toolkit built to answer a practical game-engine question:
 
-## Allocators
+How much control and predictability can you get by matching allocator design to workload shape?
 
-| Allocator | Alloc | Free | Use Case |
-|-----------|-------|------|----------|
-| `LinearAllocator` | O(1) | N/A (Reset only) | Per-frame scratch memory |
-| `StackAllocator` | O(1) | O(1) LIFO | Scoped temporary allocations |
-| `PoolAllocator` | O(1) | O(1) | Fixed-size objects (ECS, particles) |
-| `FreeListAllocator` | O(n) | O(1) | General-purpose malloc replacement |
+This project is intentionally not just a raw speed demo. It includes:
 
-## Requirements
+- Four allocator implementations with different tradeoff profiles.
+- A microbenchmark for isolated behavior.
+- A deterministic EngineSim workload runner for frame-oriented evidence.
+- A benchmark evidence pack with raw outputs, CSV files, and environment metadata.
 
-- C++17 compiler (GCC 7+, Clang 5+, MSVC 19.14+)
+## Motivation
+
+General allocators are flexible, but game/runtime systems often have stronger structure:
+
+- per-frame scratch that can be dropped in one reset,
+- fixed-size object churn (particles/components),
+- variable-size resources with mixed lifetimes.
+
+ZenithMemory exists to model that structure explicitly, then prove tradeoffs with scenario-based evidence instead of one synthetic ns/op claim.
+
+## Allocators and Tradeoffs
+
+| Allocator           | Alloc       | Free                 | Strength                            | Limitation                    |
+| ------------------- | ----------- | -------------------- | ----------------------------------- | ----------------------------- |
+| `LinearAllocator`   | O(1)        | reset-only           | Fast monotonic frame scratch        | No individual free            |
+| `StackAllocator`    | O(1)        | O(1) LIFO            | Great for nested temporary scopes   | Must free in reverse order    |
+| `PoolAllocator`     | O(1)        | O(1)                 | Stable fixed-size churn             | One chunk size per pool       |
+| `FreeListAllocator` | O(n) search | O(1) free + coalesce | Flexible variable-size lifetime mix | More metadata/search overhead |
+
+## Proof: Microbenchmark vs Real Workload
+
+The project explicitly separates evidence classes:
+
+- Microbenchmark: isolated allocator mechanics.
+- Real workload simulation (EngineSim): interleaved multi-frame behavior.
+
+See full evidence and reproducibility details in [docs/BENCHMARK_EVIDENCE.md](docs/BENCHMARK_EVIDENCE.md).
+
+### Snapshot: Microbenchmark
+
+From [docs/results/benchmark_micro.txt](docs/results/benchmark_micro.txt):
+
+- Single alloc/free (100000 iterations, 64B):
+  - `PoolAllocator`: 2.79 ns/op (2.26x vs malloc)
+  - `LinearAllocator`: 2.81 ns/op (2.25x vs malloc)
+  - `FreeListAllocator`: 7.80 ns/op (0.81x vs malloc)
+- Patterned particle churn (EngineSim-inspired):
+  - `PoolAllocator`: 47.71 ns/op
+  - `malloc`: 58.39 ns/op
+  - `FreeListAllocator`: 184.59 ns/op
+
+Interpretation:
+
+- Constrained allocators dominate when the pattern matches their contract.
+- Flexible allocators pay overhead in tight synthetic loops.
+
+### Snapshot: Real Workload Simulation
+
+From [docs/results/enginesim_steady.txt](docs/results/enginesim_steady.txt), [docs/results/enginesim_burst.txt](docs/results/enginesim_burst.txt), [docs/results/enginesim_fragmentation.txt](docs/results/enginesim_fragmentation.txt), [docs/results/enginesim_recovery.txt](docs/results/enginesim_recovery.txt):
+
+- Steady scenario: max free-list fragmentation 1.3%
+- Burst scenario: max free-list fragmentation 4.2%, peak particles 25000
+- Fragmentation scenario: max free-list fragmentation 14.0%
+- Recovery scenario: fragmentation spikes to 52.5% mid-run, then returns to 0.0% by frame 600 after churn stops
+
+Interpretation:
+
+- Burst raises peak pressure (linear and pool usage) as expected.
+- Free-list behavior is not a simple "slow/fast" story; it is a lifecycle story.
+- In recovery, the key win is coalescing and memory restoration, not best micro ns/op.
+
+## Why One Allocator Wins Then Loses
+
+The same allocator can win one scenario and lose another because workload constraints change the objective function:
+
+- Frame scratch objective: lowest overhead per transient allocation.
+  - Winner: `LinearAllocator` / `StackAllocator`.
+- Particle churn objective: cheap fixed-size reuse.
+  - Winner: `PoolAllocator`.
+- Mixed-size resource lifecycle objective: flexibility + coalescing.
+  - Winner on capability: `FreeListAllocator`.
+  - Loser on pure micro throughput: `FreeListAllocator`.
+
+## Visuals
+
+- Allocator layout overview: [docs/assets/allocator-memory-layouts.svg](docs/assets/allocator-memory-layouts.svg)
+- Workload comparison visual: [docs/assets/enginesim-workload-comparison.svg](docs/assets/enginesim-workload-comparison.svg)
+
+## Why Not VMA For This?
+
+VMA (Vulkan Memory Allocator) is excellent for GPU memory management. ZenithMemory is intentionally different in scope:
+
+- ZenithMemory targets CPU-side allocator patterns and interview-ready systems design clarity.
+- It is dependency-light and focused on allocator fundamentals, not GPU heap orchestration.
+- It makes tradeoffs and internals explicit for learning, benchmarking, and design discussion.
+
+If your production target is Vulkan resource allocation, VMA is usually the right operational choice. This project is a focused allocator systems exercise with reproducible workload evidence.
+
+## What I Learned
+
+- Fast in isolation does not guarantee best behavior in mixed frame lifecycles.
+- Fragmentation metrics need scenario context; single-value summaries can mislead.
+- Recovery behavior is as important as degradation behavior.
+- Good portfolio engineering requires reproducibility artifacts, not only charts and claims.
+
+## Build and Run
+
+Requirements:
+
+- C++17 compiler
 - CMake 3.16+
 
-## Using ZenithMemory in Your Project
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
 
-There are **three ways** to add ZenithMemory to your project, from easiest to most manual:
+./build/ZenithDemo
+./build/ZenithBenchmark
+./build/ZenithEngineSim --scenario steady --frames 600 --seed 1337 --report-every 120
+ctest --test-dir build --output-on-failure
+```
 
----
+## Integration
 
-### Method 1: FetchContent (Recommended — zero setup)
-
-Add this to your project's `CMakeLists.txt`:
+### FetchContent
 
 ```cmake
 include(FetchContent)
 
 FetchContent_Declare(
-    ZenithMemory
-    GIT_REPOSITORY https://github.com/YOUR_USERNAME/ZenithMemory.git
-    GIT_TAG        v1.0.0   # or main, or a commit hash
+        ZenithMemory
+        GIT_REPOSITORY https://github.com/YOUR_USERNAME/ZenithMemory.git
+        GIT_TAG        main
 )
 
 FetchContent_MakeAvailable(ZenithMemory)
-
-# Link against it
 target_link_libraries(YourApp PRIVATE Zenith::Memory)
 ```
 
-That's it. CMake downloads, builds, and links the library automatically. No manual installation needed.
-
----
-
-### Method 2: add_subdirectory (local copy)
-
-Clone or copy ZenithMemory into your project tree:
-
-```
-YourProject/
-├── CMakeLists.txt
-├── src/
-│   └── main.cpp
-└── external/
-    └── ZenithMemory/    ← clone here
-```
-
-Then in your `CMakeLists.txt`:
+### add_subdirectory
 
 ```cmake
 add_subdirectory(external/ZenithMemory)
 target_link_libraries(YourApp PRIVATE Zenith::Memory)
 ```
 
----
-
-### Method 3: System install + find_package
-
-Build and install ZenithMemory system-wide (or to a custom prefix):
+### find_package
 
 ```bash
-cd ZenithMemory
-mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
-make -j$(nproc)
-sudo cmake --install .
+cmake -S . -B build
+cmake --build build
+cmake --install build --prefix ~/.local
 ```
 
-Then in the consuming project:
-
 ```cmake
-find_package(ZenithMemory 1.0 REQUIRED)
+find_package(ZenithMemory REQUIRED)
 target_link_libraries(YourApp PRIVATE Zenith::Memory)
 ```
 
-If you installed to a custom prefix:
+## Additional Documentation
 
-```bash
-cmake .. -DCMAKE_PREFIX_PATH=/path/to/prefix
-```
-
----
-
-## Quick Start
-
-```cpp
-#include <Zenith/Zenith.hpp>    // includes everything
-// Or include only what you need:
-// #include <Zenith/LinearAllocator.hpp>
-
-#include <array>
-
-int main() {
-    // 1. Linear allocator on caller-owned backing memory
-    std::array<std::byte, 4096> frameMemory{};
-    Zenith::LinearAllocator frameAlloc(frameMemory.size(), frameMemory.data());
-
-    float* temp = Zenith::AllocateType<float>(frameAlloc, 64);
-    // ... use temp ...
-    frameAlloc.Reset(); // free everything at once
-
-
-    // 2. Pool allocator with typed construction helpers
-    struct Particle { float x, y, z, life; }; // 16 bytes
-    Zenith::PoolAllocator pool(16, 1000);      // 1000 particles
-
-    Particle* p1 = Zenith::Construct<Particle>(pool, Particle{0, 0, 0, 1});
-    Particle* p2 = Zenith::Construct<Particle>(pool, Particle{1, 0, 0, 1});
-    Zenith::Destroy(pool, p1); // O(1) — any order
-    Zenith::Destroy(pool, p2);
-
-
-    // 3. Stack Allocator — scoped LIFO allocations
-    Zenith::StackAllocator stack(4096);
-
-    auto* a = Zenith::AllocateType<std::uint64_t>(stack, 8);
-    auto* b = Zenith::AllocateType<std::uint8_t>(stack, 128);
-    stack.Free(b); // must free in reverse order
-    stack.Free(a);
-
-
-    // 4. Free-list allocator — general purpose
-    Zenith::FreeListAllocator general(1024 * 1024);
-
-    auto* mesh = Zenith::AllocateType<std::byte>(general, 4096);
-    auto* tex  = Zenith::AllocateType<std::byte>(general, 2048);
-    general.Free(mesh); // any order, with coalescing
-    general.Free(tex);
-
-
-    // 5. Check statistics
-    general.GetStats().Print("General");
-
-    return 0;
-}
-```
-
-### Reusable Library Conveniences
-
-- Every allocator can now be constructed on top of caller-owned backing memory.
-- `Zenith::AllocateType<T>()` gives you typed storage without manual `sizeof` or `alignof`.
-- `Zenith::Construct<T>()` and `Zenith::Destroy()` help when you want placement-new style object lifetimes on top of an allocator.
-- A standalone `find_package()` consumer example lives in `examples/find_package_consumer/`.
-
-## Building the Library Standalone
-
-```bash
-cd ZenithMemory
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-
-./ZenithDemo        # run the demo
-./ZenithBenchmark   # run performance benchmarks
-ctest --output-on-failure
-```
-
-### CMake Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `ZENITH_BUILD_EXAMPLES` | `ON` (standalone) / `OFF` (subdirectory) | Build demo and benchmark |
-| `ZENITH_INSTALL` | `ON` (standalone) / `OFF` (subdirectory) | Generate install targets |
-| `ZENITH_BUILD_TESTS` | `ON` (standalone) / `OFF` (subdirectory) | Build the CTest-based allocator suite |
-
-## Project Structure
-
-```
-ZenithMemory/
-├── CMakeLists.txt
-├── cmake/
-│   └── ZenithMemoryConfig.cmake
-├── include/Zenith/
-│   ├── Zenith.hpp              ← convenience header (includes everything)
-│   ├── Common.hpp              ← alignment math, pointer arithmetic
-│   ├── AllocationUtils.hpp     ← typed allocation and construction helpers
-│   ├── Allocator.hpp           ← abstract base class
-│   ├── MemoryStats.hpp         ← allocation statistics
-│   ├── DebugGuard.hpp          ← future debug-memory helpers
-│   ├── LinearAllocator.hpp
-│   ├── StackAllocator.hpp
-│   ├── PoolAllocator.hpp
-│   └── FreeListAllocator.hpp
-├── src/
-│   ├── LinearAllocator.cpp
-│   ├── StackAllocator.cpp
-│   ├── PoolAllocator.cpp
-│   └── FreeListAllocator.cpp
-├── demo/
-│   └── main.cpp
-├── tests/
-│   └── main.cpp
-├── examples/
-│   └── find_package_consumer/
-│       ├── CMakeLists.txt
-│       └── main.cpp
-└── benchmark/
-    └── main.cpp
-```
+- Deep technical guide: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
+- EngineSim design and scenario contract: [docs/ENGINESIM_DESIGN.md](docs/ENGINESIM_DESIGN.md)
+- Benchmark evidence and raw artifacts map: [docs/BENCHMARK_EVIDENCE.md](docs/BENCHMARK_EVIDENCE.md)
 
 ## License
 
-MIT — use it however you want.
+MIT

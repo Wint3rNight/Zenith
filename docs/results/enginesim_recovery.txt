@@ -1,0 +1,30 @@
+
+Zenith EngineSim
+Scenario: recovery | Frames: 600 | Seed: 1337 | Report every: 120
+--------------------------------------------------------------------------------
+Frame  Mode  Particles  Blobs  LinearKiB  StackPeakKiB  PoolUsed  FreeListKiB  LargestFreeKiB  Frag%  Fail
+--------------------------------------------------------------------------------
+    1    S      12000     96      542.2          25.1    12000       185.7          8006.3    0.0    0
+  120    S      12000   2000      542.2          25.1    12000      4148.5          3631.2   10.2    0
+  240    S      12000   2000      542.2          25.1    12000      4031.3          3586.2   13.8    0
+  360    S      12000    943      542.2          25.1    12000      1913.7          3745.9   40.3    0
+  480    S      12000     22      542.2          25.1    12000        37.0          4119.7   49.5    0
+  600    S      12000      0      542.2          25.1    12000         0.0          8192.0    0.0    0
+--------------------------------------------------------------------------------
+Summary
+  Frames run: 600
+  Peak particles alive: 12000
+  Peak resource blobs alive: 2000
+  Max linear peak: 542.2 KiB
+  Max stack peak: 25.1 KiB
+  Max free-list peak: 4177.6 KiB
+  Max free-list fragmentation: 52.5%
+  Total allocation failures: 0
+  Burst vs steady comparison
+    Steady frames: 600
+    Burst frames: 0
+    Avg steady linear peak: 542.2 KiB
+    Avg steady pool used: 12000.0 chunks
+    Avg steady free-list used: 2410.4 KiB
+    Avg steady fragmentation: 19.0%
+    Steady allocation failures: 0

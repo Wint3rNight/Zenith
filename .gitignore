@@ -13,6 +13,9 @@ compile_commands.json
 *.swp
 *.swo
 .DS_Store
+.codex
+TODO.md
 
-# Local docs draft (temporarily ignored)
+# Local long-form docs drafts
 docs/DOCUMENTATION.md
+docs/ENGINESIM_DESIGN.md

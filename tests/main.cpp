@@ -137,6 +137,38 @@ void TestFreeListAllocatorCoalescingAndReuse() {
   CHECK(!allocator.GetStats().HasOutstandingMemory());
 }
 
+void TestFreeListAllocatorIntrospectionMetrics() {
+  alignas(std::max_align_t) std::array<std::byte, 512> backing{};
+  Zenith::FreeListAllocator allocator(backing.size(), backing.data());
+
+  CHECK(allocator.GetFreeBlockCount() == 1);
+  CHECK(allocator.GetLargestFreeBlockSize() == backing.size());
+  CHECK(allocator.GetTotalFreeBytes() == backing.size());
+  CHECK(allocator.GetExternalFragmentationRatio() == 0.0);
+
+  void *first = allocator.Allocate(64, 16);
+  void *second = allocator.Allocate(64, 16);
+  void *third = allocator.Allocate(64, 16);
+
+  CHECK(first != nullptr);
+  CHECK(second != nullptr);
+  CHECK(third != nullptr);
+
+  allocator.Free(second);
+
+  CHECK(allocator.GetFreeBlockCount() >= 2);
+  CHECK(allocator.GetTotalFreeBytes() > allocator.GetLargestFreeBlockSize());
+  CHECK(allocator.GetExternalFragmentationRatio() > 0.0);
+
+  allocator.Free(first);
+  allocator.Free(third);
+
+  CHECK(allocator.GetFreeBlockCount() == 1);
+  CHECK(allocator.GetLargestFreeBlockSize() == backing.size());
+  CHECK(allocator.GetTotalFreeBytes() == backing.size());
+  CHECK(allocator.GetExternalFragmentationRatio() == 0.0);
+}
+
 void TestTypedHelpersConstructAndDestroy() {
   Zenith::PoolAllocator allocator(32, 2);
   CHECK(Tracked::aliveCount == 0);
@@ -176,6 +208,8 @@ int main() {
       {"Pool allocator reuse and exhaustion", TestPoolAllocatorReuseAndExhaustion},
       {"Free-list allocator coalescing and reuse",
        TestFreeListAllocatorCoalescingAndReuse},
+      {"Free-list allocator introspection metrics",
+       TestFreeListAllocatorIntrospectionMetrics},
       {"Typed helpers construct and destroy", TestTypedHelpersConstructAndDestroy},
       {"Typed helper guard rails", TestAllocateTypeGuardRails},
   };

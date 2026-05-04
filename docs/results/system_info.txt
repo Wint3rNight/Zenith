@@ -1,0 +1,12 @@
+Date: 2026-04-17 10:33:49Z
+Linux 6.19.12-1-cachyos x86_64 GNU/Linux
+CPU(s):                                  12
+On-line CPU(s) list:                     0-11
+Model name:                              AMD Ryzen 5 5600H with Radeon Graphics
+Thread(s) per core:                      2
+Core(s) per socket:                      6
+Socket(s):                               1
+CPU(s) scaling MHz:                      92%
+CPU max MHz:                             4280.9849
+CPU min MHz:                             412.6250
+NUMA node0 CPU(s):                       0-11

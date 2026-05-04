@@ -75,6 +75,13 @@ if(ZENITH_BUILD_EXAMPLES)
 
     add_executable(ZenithBenchmark benchmark/main.cpp)
     target_link_libraries(ZenithBenchmark PRIVATE ZenithMemory)
+
+    add_executable(ZenithEngineSim
+        enginesim/main.cpp
+        enginesim/EngineSim.cpp
+        enginesim/Scenario.cpp
+    )
+    target_link_libraries(ZenithEngineSim PRIVATE ZenithMemory)
 endif()
 
 # ── Tests ───────────────────────────────────────────────────────────

@@ -125,6 +125,60 @@ void FreeListAllocator::Reset() {
   m_stats.Reset();
 }
 
+// Counts the number of disjoint free blocks currently available.
+std::size_t FreeListAllocator::GetFreeBlockCount() const {
+  std::size_t count = 0;
+  FreeBlock *current = m_freeList;
+
+  while (current != nullptr) {
+    ++count;
+    current = current->next;
+  }
+
+  return count;
+}
+
+// Returns the size of the largest free block currently tracked.
+std::size_t FreeListAllocator::GetLargestFreeBlockSize() const {
+  std::size_t largest = 0;
+  FreeBlock *current = m_freeList;
+
+  while (current != nullptr) {
+    if (current->blockSize > largest) {
+      largest = current->blockSize;
+    }
+    current = current->next;
+  }
+
+  return largest;
+}
+
+// Returns the sum of all free bytes currently available.
+std::size_t FreeListAllocator::GetTotalFreeBytes() const {
+  std::size_t total = 0;
+  FreeBlock *current = m_freeList;
+
+  while (current != nullptr) {
+    total += current->blockSize;
+    current = current->next;
+  }
+
+  return total;
+}
+
+// Reports how fragmented the free space is outside the largest free block.
+double FreeListAllocator::GetExternalFragmentationRatio() const {
+  std::size_t totalFreeBytes = GetTotalFreeBytes();
+  if (totalFreeBytes == 0) {
+    return 0.0;
+  }
+
+  double largestFreeBlock = static_cast<double>(GetLargestFreeBlockSize());
+  double totalFree = static_cast<double>(totalFreeBytes);
+
+  return 1.0 - (largestFreeBlock / totalFree);
+}
+
 // Chooses the active placement-policy search strategy.
 void FreeListAllocator::Find(std::size_t size, std::size_t alignment,
                              std::size_t &outPadding, FreeBlock *&outPrevBlock,

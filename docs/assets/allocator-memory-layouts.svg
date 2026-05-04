@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Zenith allocator memory layout overview</title>
+  <desc id="desc">Diagram showing linear, stack, pool, and free-list allocator memory behavior.</desc>
+  <style>
+    .bg { fill: #0f172a; }
+    .panel { fill: #111827; stroke: #334155; stroke-width: 2; rx: 12; }
+    .label { fill: #e5e7eb; font: 700 24px 'DejaVu Sans', sans-serif; }
+    .sub { fill: #94a3b8; font: 500 15px 'DejaVu Sans', sans-serif; }
+    .mem { fill: #1f2937; stroke: #475569; stroke-width: 1.5; }
+    .usedA { fill: #22c55e; }
+    .usedB { fill: #38bdf8; }
+    .usedC { fill: #f59e0b; }
+    .usedD { fill: #f97316; }
+    .free { fill: #334155; }
+    .txt { fill: #e2e8f0; font: 600 13px 'DejaVu Sans', sans-serif; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1200" height="760" />
+
+  <rect class="panel" x="32" y="32" width="550" height="330" />
+  <text class="label" x="56" y="74">Linear Allocator</text>
+  <text class="sub" x="56" y="100">Bump pointer, reset once per frame</text>
+  <rect class="mem" x="56" y="128" width="500" height="52" />
+  <rect class="usedA" x="56" y="128" width="310" height="52" />
+  <line x1="366" y1="124" x2="366" y2="184" stroke="#ffffff" stroke-dasharray="4 4" />
+  <text class="txt" x="62" y="160">Allocated region</text>
+  <text class="txt" x="378" y="160">Remaining capacity</text>
+  <text class="sub" x="56" y="224">Fastest when allocations are monotonic and short-lived.</text>
+
+  <rect class="panel" x="618" y="32" width="550" height="330" />
+  <text class="label" x="642" y="74">Stack Allocator</text>
+  <text class="sub" x="642" y="100">LIFO allocations, free in reverse order</text>
+  <rect class="mem" x="642" y="128" width="500" height="52" />
+  <rect class="usedB" x="642" y="128" width="120" height="52" />
+  <rect class="usedC" x="762" y="128" width="140" height="52" />
+  <rect class="usedD" x="902" y="128" width="90" height="52" />
+  <line x1="992" y1="124" x2="992" y2="184" stroke="#ffffff" stroke-dasharray="4 4" />
+  <text class="txt" x="654" y="160">A</text>
+  <text class="txt" x="824" y="160">B</text>
+  <text class="txt" x="942" y="160">C (top)</text>
+  <text class="sub" x="642" y="224">Great for nested temporary system passes.</text>
+
+  <rect class="panel" x="32" y="398" width="550" height="330" />
+  <text class="label" x="56" y="440">Pool Allocator</text>
+  <text class="sub" x="56" y="466">Fixed-size chunks for stable object churn</text>
+
+  <rect class="mem" x="56" y="500" width="500" height="164" />
+  <g>
+    <rect class="usedA" x="66" y="510" width="54" height="44" />
+    <rect class="usedA" x="124" y="510" width="54" height="44" />
+    <rect class="free" x="182" y="510" width="54" height="44" />
+    <rect class="usedA" x="240" y="510" width="54" height="44" />
+    <rect class="free" x="298" y="510" width="54" height="44" />
+    <rect class="usedA" x="356" y="510" width="54" height="44" />
+    <rect class="usedA" x="414" y="510" width="54" height="44" />
+    <rect class="free" x="472" y="510" width="54" height="44" />
+
+    <rect class="usedA" x="66" y="560" width="54" height="44" />
+    <rect class="usedA" x="124" y="560" width="54" height="44" />
+    <rect class="usedA" x="182" y="560" width="54" height="44" />
+    <rect class="free" x="240" y="560" width="54" height="44" />
+    <rect class="usedA" x="298" y="560" width="54" height="44" />
+    <rect class="free" x="356" y="560" width="54" height="44" />
+    <rect class="usedA" x="414" y="560" width="54" height="44" />
+    <rect class="usedA" x="472" y="560" width="54" height="44" />
+  </g>
+  <text class="sub" x="56" y="690">Predictable O(1) alloc/free for same-size entities (particles/components).</text>
+
+  <rect class="panel" x="618" y="398" width="550" height="330" />
+  <text class="label" x="642" y="440">Free List Allocator</text>
+  <text class="sub" x="642" y="466">Variable-size blocks with split + coalesce</text>
+  <rect class="mem" x="642" y="500" width="500" height="52" />
+  <rect class="usedC" x="642" y="500" width="80" height="52" />
+  <rect class="free" x="722" y="500" width="44" height="52" />
+  <rect class="usedD" x="766" y="500" width="120" height="52" />
+  <rect class="free" x="886" y="500" width="58" height="52" />
+  <rect class="usedB" x="944" y="500" width="90" height="52" />
+  <rect class="free" x="1034" y="500" width="108" height="52" />
+  <text class="txt" x="646" y="532">A</text>
+  <text class="txt" x="734" y="532">free</text>
+  <text class="txt" x="810" y="532">B</text>
+  <text class="txt" x="900" y="532">free</text>
+  <text class="txt" x="972" y="532">C</text>
+  <text class="txt" x="1052" y="532">largest free</text>
+  <text class="sub" x="642" y="580">Most flexible, but can fragment under mixed-size churn.</text>
+  <text class="sub" x="642" y="608">Recovery scenario demonstrates coalescing behavior.</text>
+</svg>

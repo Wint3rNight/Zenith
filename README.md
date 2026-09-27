@@ -346,8 +346,12 @@ struct Particle {
   float lifetime;
 };
 
+// Pool chunks must be a multiple of Zenith::DEFAULT_ALIGNMENT, so round 28 up to 32.
+constexpr std::size_t kChunkSize =
+    (sizeof(Particle) + Zenith::DEFAULT_ALIGNMENT - 1) & ~(Zenith::DEFAULT_ALIGNMENT - 1);
+
 int main() {
-  Zenith::PoolAllocator particles(sizeof(Particle), 1024);
+  Zenith::PoolAllocator particles(kChunkSize, 1024);
 
   auto *particle = Zenith::Construct<Particle>(particles);
   if (particle == nullptr) {
@@ -383,7 +387,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   ZenithMemory
-  GIT_REPOSITORY https://github.com/WinterInOctober/ZenithMemory.git
+  GIT_REPOSITORY https://github.com/Wint3rNight/Zenith.git
   GIT_TAG main
 )
 

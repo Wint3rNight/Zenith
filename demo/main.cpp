@@ -212,7 +212,7 @@ void DemoFreeListAllocator() {
   std::cout
       << "╠══════════════════════════════════════════════════════════════╣\n";
   std::cout
-      << "║  Use case: General-purpose allocator replacing malloc.      ║\n";
+      << "║  Use case: variable-size blocks inside one fixed region.    ║\n";
   std::cout
       << "║  Supports variable sizes, any-order free, coalescing.       ║\n";
   std::cout
